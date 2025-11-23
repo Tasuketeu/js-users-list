@@ -1,102 +1,5 @@
-// Примеры данных пользователей
-let users = [
-    {
-        id: 1,
-        firstName: "Артем",
-        lastName: "Волков",
-        age: 25,
-        email: "artem.volkov@example.com",
-        photo: "https://randomuser.me/api/portraits/men/1.jpg"
-    },
-    {
-        id: 2,
-        firstName: "София",
-        lastName: "Зайцева",
-        age: 32,
-        email: "sofiya.zaytseva@example.com",
-        photo: "https://randomuser.me/api/portraits/women/2.jpg"
-    },
-    {
-        id: 3,
-        firstName: "Максим",
-        lastName: "Козлов",
-        age: 19,
-        email: "maksim.kozlov@example.com",
-        photo: "https://randomuser.me/api/portraits/men/3.jpg"
-    },
-    {
-        id: 4,
-        firstName: "Анна",
-        lastName: "Лебедева",
-        age: 28,
-        email: "anna.lebedeva@example.com",
-        photo: "https://randomuser.me/api/portraits/women/4.jpg"
-    },
-    {
-        id: 5,
-        firstName: "Денис",
-        lastName: "Морозов",
-        age: 22,
-        email: "denis.morozov@example.com",
-        photo: "https://randomuser.me/api/portraits/men/5.jpg"
-    },
-    {
-        id: 6,
-        firstName: "Виктория",
-        lastName: "Новикова",
-        age: 35,
-        email: "viktoriya.novikova@example.com",
-        photo: "https://randomuser.me/api/portraits/women/6.jpg"
-    },
-    {
-        id: 7,
-        firstName: "Кирилл",
-        lastName: "Павлов",
-        age: 17,
-        email: "kirill.pavlov@example.com",
-        photo: "https://randomuser.me/api/portraits/men/7.jpg"
-    },
-    {
-        id: 8,
-        firstName: "Екатерина",
-        lastName: "Романова",
-        age: 29,
-        email: "ekaterina.romanova@example.com",
-        photo: "https://randomuser.me/api/portraits/women/8.jpg"
-    },
-    {
-        id: 9,
-        firstName: "Александр",
-        lastName: "Соколов",
-        age: 31,
-        email: "alexandr.sokolov@example.com",
-        photo: "https://randomuser.me/api/portraits/men/9.jpg"
-    },
-    {
-        id: 10,
-        firstName: "Полина",
-        lastName: "Тихонова",
-        age: 24,
-        email: "polina.tikhonova@example.com",
-        photo: "https://randomuser.me/api/portraits/women/10.jpg"
-    },
-    {
-        id: 11,
-        firstName: "Никита",
-        lastName: "Федоров",
-        age: 27,
-        email: "nikita.fedorov@example.com",
-        photo: "https://randomuser.me/api/portraits/men/11.jpg"
-    },
-    {
-        id: 12,
-        firstName: "Алиса",
-        lastName: "Яковлева",
-        age: 20,
-        email: "alisa.yakovleva@example.com",
-        photo: "https://randomuser.me/api/portraits/women/12.jpg"
-    }
-];
+// Начальные данные пользователей
+let users = [];
 
 // Начальные настройки возраста и сортировки
 const defaultSettings = {
@@ -109,14 +12,30 @@ let currentUserId = null;
 const modal = document.getElementById('photoModal');
 const closeBtn = document.querySelector('.close');
 
-// Загрузка данных из localStorage при наличии
+// API endpoints (для демонстрации используем mock API)
+const API_URLS = {
+    users: 'https://jsonplaceholder.typicode.com/users'
+};
+
+// Загрузка данных из localStorage и API при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    const savedUsers = localStorage.getItem('users');
-    if (savedUsers) {
-        users = JSON.parse(savedUsers);
-    }
+    // Показываем индикатор загрузки
+    showLoading();
+
+    // Загружаем настройки
     loadSettings();
-    renderUsers();
+
+    // Загружаем пользователей через AJAX
+    loadUsersFromAPI()
+        .then(() => {
+            renderUsers();
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки пользователей:', error);
+            // Если API недоступно, используем демо данные
+            loadDemoUsers();
+            renderUsers();
+        });
 
     // Обработчики событий для фильтра и сортировки
     document.getElementById('ageFilter').addEventListener('input', function() {
@@ -130,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderUsers();
     });
 
-    // Обработчики для модального окна
+    // Обработчики для модального окна загрузки
     closeBtn.addEventListener('click', closeModal);
     window.addEventListener('click', function(event) {
         if (event.target === modal) {
@@ -150,6 +69,158 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('uploadFileBtn').addEventListener('click', handleFileUpload);
     document.getElementById('applyUrlBtn').addEventListener('click', handleUrlApply);
 });
+
+// Функция для загрузки пользователей через AJAX
+async function loadUsersFromAPI() {
+    try {
+        const response = await fetch(API_URLS.users);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const apiUsers = await response.json();
+
+        // Преобразуем данные API в наш формат
+        users = apiUsers.map(user => ({
+            id: user.id,
+            firstName: user.name.split(' ')[0],
+            lastName: user.name.split(' ')[1] || '',
+            age: Math.floor(Math.random() * 42) + 18,
+            email: user.email,
+            photo: `https://randomuser.me/api/portraits/${user.id % 2 === 0 ? 'men' : 'women'}/${user.id}.jpg`
+        }));
+
+        // Сохраняем загруженных пользователей в localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+
+    } catch (error) {
+        console.error('Ошибка при загрузке пользователей:', error);
+        throw error;
+    }
+}
+
+// Функция для загрузки демо-пользователей (если API недоступно)
+function loadDemoUsers() {
+    const demoUsers = [
+        {
+            id: 1,
+            firstName: "Артем",
+            lastName: "Волков",
+            age: 25,
+            email: "artem.volkov@example.com",
+            photo: "https://randomuser.me/api/portraits/men/1.jpg"
+        },
+        {
+            id: 2,
+            firstName: "София",
+            lastName: "Зайцева",
+            age: 32,
+            email: "sofiya.zaytseva@example.com",
+            photo: "https://randomuser.me/api/portraits/women/2.jpg"
+        },
+        {
+            id: 3,
+            firstName: "Максим",
+            lastName: "Козлов",
+            age: 19,
+            email: "maksim.kozlov@example.com",
+            photo: "https://randomuser.me/api/portraits/men/3.jpg"
+        },
+        {
+            id: 4,
+            firstName: "Анна",
+            lastName: "Лебедева",
+            age: 28,
+            email: "anna.lebedeva@example.com",
+            photo: "https://randomuser.me/api/portraits/women/4.jpg"
+        },
+        {
+            id: 5,
+            firstName: "Денис",
+            lastName: "Морозов",
+            age: 22,
+            email: "denis.morozov@example.com",
+            photo: "https://randomuser.me/api/portraits/men/5.jpg"
+        },
+        {
+            id: 6,
+            firstName: "Виктория",
+            lastName: "Новикова",
+            age: 35,
+            email: "viktoriya.novikova@example.com",
+            photo: "https://randomuser.me/api/portraits/women/6.jpg"
+        },
+        {
+            id: 7,
+            firstName: "Кирилл",
+            lastName: "Павлов",
+            age: 17,
+            email: "kirill.pavlov@example.com",
+            photo: "https://randomuser.me/api/portraits/men/7.jpg"
+        },
+        {
+            id: 8,
+            firstName: "Екатерина",
+            lastName: "Романова",
+            age: 29,
+            email: "ekaterina.romanova@example.com",
+            photo: "https://randomuser.me/api/portraits/women/8.jpg"
+        },
+        {
+            id: 9,
+            firstName: "Александр",
+            lastName: "Соколов",
+            age: 31,
+            email: "alexandr.sokolov@example.com",
+            photo: "https://randomuser.me/api/portraits/men/9.jpg"
+        },
+        {
+            id: 10,
+            firstName: "Полина",
+            lastName: "Тихонова",
+            age: 24,
+            email: "polina.tikhonova@example.com",
+            photo: "https://randomuser.me/api/portraits/women/10.jpg"
+        },
+        {
+            id: 11,
+            firstName: "Никита",
+            lastName: "Федоров",
+            age: 27,
+            email: "nikita.fedorov@example.com",
+            photo: "https://randomuser.me/api/portraits/men/11.jpg"
+        },
+        {
+            id: 12,
+            firstName: "Алиса",
+            lastName: "Яковлева",
+            age: 20,
+            email: "alisa.yakovleva@example.com",
+            photo: "https://randomuser.me/api/portraits/women/12.jpg"
+        }
+    ];
+
+    // Проверяем, есть ли уже пользователи в localStorage
+    const savedUsers = localStorage.getItem('users');
+    if (!savedUsers) {
+        users = demoUsers;
+        localStorage.setItem('users', JSON.stringify(users));
+    } else {
+        users = JSON.parse(savedUsers);
+    }
+}
+
+// Функция для показа индикатора загрузки
+function showLoading() {
+    const usersContainer = document.getElementById('usersContainer');
+    usersContainer.innerHTML = `
+        <div class="loading-indicator">
+            <div class="spinner"></div>
+            <p>Загрузка пользователей...</p>
+        </div>
+    `;
+}
 
 // Загрузка настроек
 function loadSettings() {
@@ -213,6 +284,17 @@ function renderUsers() {
 
     // Очистка контейнера
     usersContainer.innerHTML = '';
+
+    // Если пользователей нет, показываем сообщение
+    if (filteredUsers.length === 0) {
+        usersContainer.innerHTML = `
+            <div class="no-users">
+                <p>Пользователи не найдены</p>
+                <p>Попробуйте изменить настройки фильтра</p>
+            </div>
+        `;
+        return;
+    }
 
     // Добавление пользователей в контейнер
     filteredUsers.forEach(user => {
