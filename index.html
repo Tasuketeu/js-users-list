@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список пользователей</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Список пользователей</h1>
+        <p>Управляйте списком пользователей: фильтруйте, сортируйте и загружайте фотографии</p>
+    </header>
+
+    <div class="controls">
+        <div class="filter-controls">
+            <div>
+                <label for="ageFilter">Фильтр по возрасту: </label>
+                <span class="age-filter-value">18</span>+
+            </div>
+            <input type="range" id="ageFilter" min="18" max="60" value="18">
+        </div>
+
+        <div class="sort-controls">
+            <label for="sortBy">Сортировать по:</label>
+            <div class="select-wrapper">
+                <select id="sortBy">
+                    <option value="name-asc">Имени (А-Я)</option>
+                    <option value="name-desc">Имени (Я-А)</option>
+                    <option value="age-asc">Возрасту (сначала младше)</option>
+                    <option value="age-desc">Возрасту (сначала старшие)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="users-grid" id="usersContainer">
+        <!-- Динамическое добавление пользователей -->
+    </div>
+</div>
+
+<!-- Модальное окно для загрузки фото -->
+<div id="photoModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Изменение фотографии</h2>
+        <div class="modal-tabs">
+            <button class="tab-button active" data-tab="upload">Загрузить файл</button>
+            <button class="tab-button" data-tab="url">Указать URL</button>
+        </div>
+
+        <div id="uploadTab" class="tab-content active">
+            <input type="file" id="fileUpload" accept="image/*">
+            <button id="uploadFileBtn" class="modal-btn">Загрузить</button>
+        </div>
+
+        <div id="urlTab" class="tab-content">
+            <input type="text" id="photoUrl" placeholder="Введите URL изображения">
+            <button id="applyUrlBtn" class="modal-btn">Применить</button>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
