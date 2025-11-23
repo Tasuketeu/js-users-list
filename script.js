@@ -98,6 +98,12 @@ let users = [
     }
 ];
 
+// Начальные настройки возраста и сортировки
+const defaultSettings = {
+    ageFilter: 18,
+    sortBy: 'name-asc'
+};
+
 // Переменные для управления модальным окном
 let currentUserId = null;
 const modal = document.getElementById('photoModal');
@@ -109,15 +115,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (savedUsers) {
         users = JSON.parse(savedUsers);
     }
+    loadSettings();
     renderUsers();
 
     // Обработчики событий для фильтра и сортировки
     document.getElementById('ageFilter').addEventListener('input', function() {
         document.querySelector('.age-filter-value').textContent = this.value;
+        saveSettings();
         renderUsers();
     });
 
-    document.getElementById('sortBy').addEventListener('change', renderUsers);
+    document.getElementById('sortBy').addEventListener('change', function() {
+        saveSettings();
+        renderUsers();
+    });
 
     // Обработчики для модального окна
     closeBtn.addEventListener('click', closeModal);
@@ -139,6 +150,38 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('uploadFileBtn').addEventListener('click', handleFileUpload);
     document.getElementById('applyUrlBtn').addEventListener('click', handleUrlApply);
 });
+
+// Загрузка настроек
+function loadSettings() {
+    const savedSettings = localStorage.getItem('userSettings');
+
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+
+        // Устанавливаем значения элементов управления
+        document.getElementById('ageFilter').value = settings.ageFilter;
+        document.querySelector('.age-filter-value').textContent = settings.ageFilter;
+        document.getElementById('sortBy').value = settings.sortBy;
+    } else {
+        // Используем настройки по умолчанию
+        document.getElementById('ageFilter').value = defaultSettings.ageFilter;
+        document.querySelector('.age-filter-value').textContent = defaultSettings.ageFilter;
+        document.getElementById('sortBy').value = defaultSettings.sortBy;
+
+        // Сохраняем настройки по умолчанию
+        saveSettings();
+    }
+}
+
+// Функция для сохранения настроек в localStorage
+function saveSettings() {
+    const settings = {
+        ageFilter: parseInt(document.getElementById('ageFilter').value),
+        sortBy: document.getElementById('sortBy').value
+    };
+
+    localStorage.setItem('userSettings', JSON.stringify(settings));
+}
 
 // Функция для отображения пользователей
 function renderUsers() {
